@@ -1,0 +1,102 @@
+<?xml version = "1.0" encoding = "UTF-8"?>
+<project name = "PK2" default = "Run-Project" basedir = ".">
+
+    <path id="compile.classpath">
+        <fileset dir="./libs">
+            <include name="*.jar"/>
+        </fileset>
+    </path>
+
+    <path id="config.config">
+        <fileset dir="config">
+            <include name="*.properties"/>
+        </fileset>
+    </path>
+
+    <target name = "Init" >
+        <echo message = "Inicjacja zmiennych parametrycznych..."/>
+        <property name = "PK2.bin" value = "bin" />
+        <property name = "PK2.src" value = "src" />
+        <property name = "PK2.conf" value = "config" />
+        <property name = "PK2.dist" value= "dist" />
+        <property name = "PK2.doc" value = "${PK2.dist}/Docs" />
+        <property name = "PK2.lib" value = "libs" />
+        <property name = "PK2.icons" value = "icons" />
+        <property name = "p.app" value = "${PK2.src}/application" />
+    </target>
+
+    <target name = "Clean" depends = "Init" >
+        <echo message = "Usuwanie zbednych czesci projektu..."/>
+        <delete dir = "${PK2.bin}" />
+        <delete dir = "${PK2.doc}/javadoc" />
+    </target>
+
+
+    <target name = "Prepare" depends = "Clean" >
+        <echo message = "Przygotowanie struktury projektu..."/>
+        <mkdir dir = "${PK2.bin}"/>
+        <mkdir dir = "${PK2.doc}/javadoc" />
+    </target>
+
+
+    <target name = "Compile-app" depends = "Init, Prepare">
+        <echo message = "Kompilacja pakietu app..." />
+        <javac srcdir = "${p.app}"
+               destdir = "${PK2.bin}">
+               <classpath refid= "compile.classpath"/>
+               <classpath refid= "config.config"/>
+        </javac>
+        <copy todir="${PK2.bin}">
+            <fileset dir="icons">
+                <include name="**/*.png"/>
+            </fileset>
+            <fileset dir="config">
+                <include name="**/*.properties"/>
+            </fileset>
+        </copy>
+    </target>
+
+    <target name = "Javadoc" depends = "Compile-app">
+        <echo message = "Utworzenie dokumentacji javadoc..." />
+        <javadoc sourcefiles = "${p.app}/*.java"
+                 destdir = "${PK2.doc}/javadoc"
+                 encoding="UTF-8"
+                 charset="UTF-8">
+                <classpath refid= "compile.classpath"/>
+        </javadoc>
+    </target>
+
+    <target name ="Create-EXJAR" depends="Javadoc">
+        <echo message = "Tworzenie executable jar..." />
+        <manifest file = "MANIFEST.MF">
+            <attribute name = "Main-Class" value = "application.ApplicationGui"/>
+        </manifest>
+        <jar destfile="dist/Project.jar"
+             basedir="."
+             includes="bin/**,src/**,config/**,icons/**"
+             manifest="MANIFEST.MF">
+            <fileset dir="${PK2.bin}" includes="**/*.class" />
+            <fileset dir="${PK2.conf}" includes="**/*.properties" />
+            <fileset dir="${PK2.icons}" includes="**/*.png" />
+            <zipgroupfileset dir="${PK2.lib}" includes="**/*.jar" />
+        </jar>
+        <copy todir="config">
+            <fileset dir="config">
+                <include name="**/*.properties"/>
+            </fileset>
+        </copy>
+    </target>
+
+    <target name = "Run-Project" depends = "Create-EXJAR">
+        <echo message = "Start aplikacji..." />
+        <java classname="application.ApplicationGui" fork="true">
+            <classpath refid= "compile.classpath"/>
+            <classpath id = "1">
+                <pathelement location = "." />
+                <pathelement location = "${PK2.lib}" />
+                <pathelement location = "${PK2.bin}" />
+                <pathelement location = "${PK2.conf}" />
+            </classpath>
+        </java>
+    </target>
+</project>
