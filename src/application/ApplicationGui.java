@@ -1,10 +1,7 @@
 package application;
 
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
+import java.awt.event.*;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -14,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.URISyntaxException;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Map;
 import java.util.Objects;
@@ -41,11 +39,15 @@ import com.l2fprod.common.swing.tips.DefaultTip;
 import com.l2fprod.common.swing.tips.DefaultTipModel;
 
 /**
- * @author VashRaX
+ *  Klasa odpowiedzialna za wygląd oraz działanie aplikacji.
+ *
+ * @author Grzegorz Ciosek (VashRaX)
+ * @version 1.4.1
+ *
  */
 
 @SuppressWarnings({ "rawtypes", "unchecked" })
-public class ApplicationGui {
+public class ApplicationGui implements ActionListener{
 
 
     JFrame frame;
@@ -66,12 +68,16 @@ public class ApplicationGui {
     JButton readFromFileButton;
     JButton setZeroToAllTable;
     JButton setToTable;
+    JButton setRandomValuesButton;
+
+    JButton helpButton;
+    JButton saveButton;
+    JButton loadButton;
 
     JScrollPane scrollPane;
     JTable table = new JTable();
 
     ChartPanel chartPanel;
-    JTaskPaneGroup taskPaneGroup_2;
 
     JTextArea textAreaValue;
 
@@ -89,71 +95,54 @@ public class ApplicationGui {
 
     JMenuItem menuHelpItem;
     JMenuItem menuAuthorItem;
+    JMenuItem menuTipsItem;
 
     JMenuItem menuCloseItem;
     JMenuItem menuSaveItem;
     JMenuItem menuLoadItem;
-    JMenuItem menuExportItem;
+
 
     JMenuItem menuZeroItem;
     JMenuItem menuRandomItem;
 
-
-    File file = new File("Number.txt");
+    /**
+     * Stała odpowiedzialna za zapis do logów.
+     */
 
     private static final Logger logger = LogManager.getLogger(ApplicationGui.class);
 
-
     /**
-     * Launch the application.
-     *
-     *
-     * @param args
+     * Konstruktor bezwarunkowy wyświetlający aplikację.
      */
 
-    public static void main(String[] args) {
-        EventQueue.invokeLater(() -> {
-            try {
-                ApplicationGui window = new ApplicationGui();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
-    }
-
-    /**
-     * Create the application.
-     */
     public ApplicationGui() {
+        logger.info("Program Tabelka.");
+        logger.info("Wstępne ustawienia, wczytywanie paneli.");
         setFrameAndPanel();
+
+        logger.info("Wizualizacja okienka, funkcje.");
         initializeApp();
+
         frame.setVisible(true);
         showTips(tips);
     }
 
-    private static void showMessageDialog(ActionEvent e) {
-        JOptionPane.showMessageDialog(null, "Autor : Grzegorz  Ciosek", "O programie", JOptionPane.INFORMATION_MESSAGE);
-    }
-
     /**
-     * Initialize the contents of the frame.
+     * Inicjacja właściwości oraz paneli aplikacji.
      */
-
 
     private void setFrameAndPanel() {
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-
         frame = new JFrame();
-        frame.setTitle("miniExel");
+        frame.setTitle("Tabelka.");
         frame.setResizable(false);
-        frame.setBounds((int) screenSize.getWidth() / 2 - 500, (int) screenSize.getHeight() / 2 - 200, 1000, 464);
+        frame.setBounds((int) screenSize.getWidth() / 2 - 500, (int) screenSize.getHeight() / 2 - 200, 1000, 484);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.getContentPane().setLayout(new BorderLayout(0, 0));
 
         panelNorth = new JPanel();
         frame.getContentPane().add(panelNorth, BorderLayout.NORTH);
         panelNorth.setLayout(new BorderLayout(0, 0));
-
 
         panelSouth = new JPanel();
         frame.getContentPane().add(panelSouth, BorderLayout.SOUTH);
@@ -164,31 +153,22 @@ public class ApplicationGui {
         taskPane = new JTaskPane();
         frame.getContentPane().add(taskPane, BorderLayout.EAST);
 
-        //panelEast = new JPanel();
-        //frame.getContentPane().add(panelEast, BorderLayout.EAST);
-
         panelCentral = new JPanel();
         frame.getContentPane().add(panelCentral, BorderLayout.CENTER);
         panelCentral.setLayout(null);
     }
 
+    /**
+     *  <p> Metoda odpowiedzialna za wygląd aplikacji </p>
+     *  <p> W niej zawarte są konfiguracje wszystkich komponentów.</p>
+     */
 
     private void initializeApp() {
 
-        if (!file.exists()) {
-            try {
-
-                file.createNewFile();
-            } catch (IOException e1) {
-                JOptionPane.showMessageDialog(null, "Błąd podczas tworzenia pliku");
-            }
-        }
-
         //------------------------------------------------
 
-
-        textLabelValue = new JLabel("Wartość : ");
-        textLabelValue.setBounds(335, 11, 135, 15);
+        textLabelValue = new JLabel("Wartość [format: **.**] : ");
+        textLabelValue.setBounds(250, 11, 150, 15);
         panelCentral.add(textLabelValue);
 
 
@@ -211,39 +191,30 @@ public class ApplicationGui {
         setToTable = new JButton("Wstaw");
         setToTable.setBounds(480, 7, 106, 23);
         panelCentral.add(setToTable);
-        setToTable.addActionListener(actionEvent -> {
-            table.setValueAt(textFieldValue.getText(), slider_1.getValue() - 1, slider.getValue() - 1);
-            reloadChart();
-            textAreaValue.setText("");
-        });
+        setToTable.addActionListener(this::actionPerformed);
 
 
         setZeroToAllTable = new JButton("Zerowanie");
         setZeroToAllTable.setBounds(437, 306, 149, 23);
         panelCentral.add(setZeroToAllTable);
-        setZeroToAllTable.addActionListener(actionEvent -> {
-            tableSetModel();
-            reloadChart();
-            textAreaValue.setText("");
-        });
+        setZeroToAllTable.addActionListener(this::actionPerformed);
+
+        setRandomValuesButton = new JButton("Wartości losowe");
+        setRandomValuesButton.setBounds(437, 340, 149, 23);
+        setRandomValuesButton.addActionListener(this::actionPerformed);
+        panelCentral.add(setRandomValuesButton);
 
 
         readFromFileButton = new JButton("Wczytaj z pliku");
         readFromFileButton.setBounds(437, 272, 149, 23);
         panelCentral.add(readFromFileButton);
-        readFromFileButton.addActionListener(actionEvent -> {
-            loadFromFile();
-            textAreaValue.setText("");
-        });
+        readFromFileButton.addActionListener(this::actionPerformed);
 
 
         writeToFileButton = new JButton("Zapisz od pliku");
         writeToFileButton.setBounds(437, 238, 149, 23);
         panelCentral.add(writeToFileButton);
-        writeToFileButton.addActionListener(actionEvent -> {
-            saveToFile();
-            textAreaValue.setText("");
-        });
+        writeToFileButton.addActionListener(this::actionPerformed);
 
 
         //------------------------------------------------
@@ -305,37 +276,39 @@ public class ApplicationGui {
         taskPaneGroup.setTitle("Wykres");
         taskPaneGroup.add(panelWykres);
         panelWykres.add(createBarChart());
-        taskPaneGroup.setExpanded(false);
+        taskPaneGroup.setExpanded(true);
         taskPane.add(taskPaneGroup);
 
+        //------------------------------------------------
+
+        ImageIcon random = new ImageIcon(Objects.requireNonNull(getClass().getClassLoader().getResource("refresh.png")));
+        ImageIcon zero = new ImageIcon(Objects.requireNonNull(getClass().getClassLoader().getResource("close.png")));
+        ImageIcon unlike = new ImageIcon(Objects.requireNonNull(getClass().getClassLoader().getResource("hand_thumbsdown.png")));
+        ImageIcon cloud = new ImageIcon(Objects.requireNonNull(getClass().getClassLoader().getResource("upload.png")));
+        ImageIcon help = new ImageIcon(Objects.requireNonNull(getClass().getClassLoader().getResource("address_book.png")));
+        ImageIcon save = new ImageIcon(Objects.requireNonNull(getClass().getClassLoader().getResource("diskette.png")));
+        ImageIcon load = new ImageIcon(Objects.requireNonNull(getClass().getClassLoader().getResource("download2.png")));
+
+        //------------------------------------------------
 
         toolBar = new JToolBar();
         toolBar.setFloatable(false);
         toolBar.setRollover(true);
         panelNorth.add(toolBar, BorderLayout.SOUTH);
 
-        ImageIcon help = new ImageIcon(Objects.requireNonNull(getClass().getClassLoader().getResource("address_book.png")));
-        JButton helpButton = new JButton(help);
-        helpButton.addActionListener(actionEvent -> showHelp());
+        helpButton = new JButton(help);
+        helpButton.addActionListener(this::actionPerformed);
         toolBar.add(helpButton);
 
-        ImageIcon save = new ImageIcon(Objects.requireNonNull(getClass().getClassLoader().getResource("diskette.png")));
-        JButton saveButton = new JButton(save);
-        saveButton.addActionListener(actionEvent -> saveToFile());
+        saveButton = new JButton(save);
+        saveButton.addActionListener(this::actionPerformed);
         toolBar.add(saveButton);
 
-        ImageIcon load = new ImageIcon(Objects.requireNonNull(getClass().getClassLoader().getResource("download2.png")));
-        JButton loadButton = new JButton(load);
-        loadButton.addActionListener(actionEvent -> loadFromFile());
+        loadButton = new JButton(load);
+        loadButton.addActionListener(this::actionPerformed);
         toolBar.add(loadButton);
 
-        ImageIcon random = new ImageIcon(Objects.requireNonNull(getClass().getClassLoader().getResource("refresh.png")));
-
-        ImageIcon zero = new ImageIcon(Objects.requireNonNull(getClass().getClassLoader().getResource("close.png")));
-
-        ImageIcon unlike = new ImageIcon(Objects.requireNonNull(getClass().getClassLoader().getResource("hand_thumbsdown.png")));
-
-        ImageIcon cloud = new ImageIcon(Objects.requireNonNull(getClass().getClassLoader().getResource("upload.png")));
+        //------------------------------------------------
 
         menuBar = new JMenuBar();
         panelNorth.add(menuBar, BorderLayout.NORTH);
@@ -349,50 +322,62 @@ public class ApplicationGui {
         menuBar.add(menuHelp);
 
         menuSaveItem = new JMenuItem("Zapisz do pliku", save);
+        KeyStroke f2 = KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0);
         menuFile.add(menuSaveItem);
-        menuSaveItem.addActionListener(actionEvent -> saveToFile());
+        menuSaveItem.setAccelerator(f2);
+        menuSaveItem.addActionListener(this::actionPerformed);
 
         menuLoadItem = new JMenuItem("Wczytaj z pliku", load);
+        KeyStroke f3 = KeyStroke.getKeyStroke(KeyEvent.VK_F3, 0);
         menuFile.add(menuLoadItem);
-        menuLoadItem.addActionListener(actionEvent -> loadFromFile());
-
-        menuExportItem = new JMenuItem("Export do chmury", cloud);
-        menuFile.addSeparator();
-        menuFile.add(menuExportItem);
-        menuFile.addSeparator();
-        menuExportItem.addActionListener(actionEvent -> JOptionPane.showMessageDialog(null, "Jeszcze kurwa czego -,-"));
+        menuLoadItem.setAccelerator(f3);
+        menuLoadItem.addActionListener(this::actionPerformed);
 
         menuCloseItem = new JMenuItem("Zamknij");
         menuFile.add(menuCloseItem);
-        menuCloseItem.addActionListener(actionEvent -> System.exit(1));
+        KeyStroke f4 = KeyStroke.getKeyStroke(KeyEvent.VK_F4, 0);
+        menuCloseItem.setAccelerator(f4);
+        menuCloseItem.addActionListener(this::actionPerformed);
 
         menuHelpItem = new JMenuItem("Pomoc :)", help);
+        KeyStroke f1 = KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0);
         menuHelp.add(menuHelpItem);
-        menuHelpItem.addActionListener(actionEvent -> showHelp());
+        menuHelpItem.setAccelerator(f1);
+        menuHelpItem.addActionListener(this::actionPerformed);
 
         menuAuthorItem = new JMenuItem("O programie", unlike);
+        KeyStroke hme = KeyStroke.getKeyStroke(KeyEvent.VK_HOME, 0);
         menuHelp.add(menuAuthorItem);
-        menuAuthorItem.addActionListener(ApplicationGui::showMessageDialog);
+        menuAuthorItem.setAccelerator(hme);
+        menuAuthorItem.addActionListener(this::actionPerformed);
+
+        menuTipsItem = new JMenuItem("Wyświetl tips", cloud);
+        KeyStroke end = KeyStroke.getKeyStroke(KeyEvent.VK_END, 0);
+        menuHelp.add(menuTipsItem);
+        menuTipsItem.setAccelerator(end);
+        menuTipsItem.addActionListener(this::actionPerformed);
 
         menuZeroItem = new JMenuItem("Zerowanie tabeli", zero);
-        menuZeroItem.addActionListener(actionEvent -> {
-            tableSetModel();
-
-            textAreaValue.setText("");
-        });
+        KeyStroke f5 = KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0);
         menuEdit.add(menuZeroItem);
+        menuZeroItem.setAccelerator(f5);
+        menuZeroItem.addActionListener(this::actionPerformed);
+
         menuRandomItem = new JMenuItem("Wartosci losowe", random);
+        KeyStroke f6 = KeyStroke.getKeyStroke(KeyEvent.VK_F6, 0);
         menuEdit.add(menuRandomItem);
-        menuRandomItem.addActionListener(actionEvent -> tableSetRandomValues(5));
+        menuRandomItem.setAccelerator(f6);
+        menuRandomItem.addActionListener(this::actionPerformed);
+
+        //------------------------------------------------
+
         calendarCombo = new JCalendarCombo();
-        calendarCombo.setBounds(5, 5, 250, 20);
+        calendarCombo.setBounds(5, 5, 200, 20);
         calendarCombo.setDateFormat(new SimpleDateFormat("yyyy-MM-dd"));
         calendarCombo.addDateListener(this::dateChanged);
         panelCentral.add(calendarCombo);
 
-
         //------------------------------------------------
-
 
         String[] listItems = {"Suma elementów", "Średnia elementów", "Wartość max", "Wartość min"};
         operationList = new JList(listItems);
@@ -427,7 +412,7 @@ public class ApplicationGui {
                                 srednia += Double.parseDouble(table.getValueAt(i, j).toString()) / 25;
                             }
                         }
-                        textAreaValue.setText(String.valueOf(srednia));
+                        textAreaValue.setText(String.valueOf(new DecimalFormat("##.##").format(srednia)));
                         break;
 
                     case 2: //Max
@@ -471,26 +456,29 @@ public class ApplicationGui {
 
         panelCentral.add(operationList);
 
-        JButton btnNewButton = new JButton("RANDOM");
-        btnNewButton.setBounds(437, 340, 89, 23);
-        btnNewButton.addActionListener(e -> tableSetRandomValues(5));
-        panelCentral.add(btnNewButton);
-
-
         //------------------------------------------------
 
         logger.info("Start aplikacji.");
-
         tips = new Tips();
-        tips.loadTips();
 
-        //------------------------------------------------
 
     }
 
+    //------------------------------------------------
+    //------------------------------------------------
+    //------------------------------------------------
+
+    /**
+     * Metoda tworząca i zwracająca ciało wykresu.
+     * <p>
+     *      Pobiera dane z tabeli, tworzy tabelę wartości oraz ilości i na tej podstawie generuje wykres.
+     * </p>
+     * @return Wykres.
+     */
+
     ChartPanel createBarChart() {
 
-        XYSeries series1 = new XYSeries("Tabela");
+        XYSeries series1 = new XYSeries("Wartości");
 
         TreeMap<Double, Integer> values = new TreeMap();
 
@@ -507,45 +495,95 @@ public class ApplicationGui {
         for (Map.Entry<Double, Integer> entry : values.entrySet()) {
             double key = entry.getKey();
             int value = entry.getValue();
-            System.out.println(key + " " + value);
             series1.add(key, value);
         }
 
         IntervalXYDataset dataset = new XYBarDataset(new XYSeriesCollection(series1), 0.25);
         chartPanel = new ChartPanel(ChartFactory.createXYBarChart("Histogram pionowy", "Wartość", false, "Ilość", dataset));
         chartPanel.setPreferredSize(new java.awt.Dimension(300, 200));
+        logger.info("Generowanie flipchartu.");
         return chartPanel;
 
     }
 
+    //------------------------------------------------
+    //------------------------------------------------
+    //------------------------------------------------
+
+    /**
+     *  Metoda służąca do przeładowania wykresu w czasie rzeczywistym.
+     */
+
     void reloadChart() {
+        logger.info("Przeładowanie tabeli.");
         panelWykres.remove(chartPanel);
         panelWykres.revalidate();
         panelWykres.add(createBarChart());
     }
 
+    //------------------------------------------------
+    //------------------------------------------------
+    //------------------------------------------------
+
+    /**
+     * Metoda służaca do wyświetlania "Tipsów"
+     * @param tips - obiekt zawierający dane do wyświetlenia.
+     */
+
     void showTips(Tips tips) {
         SingleTip tip;
         DefaultTipModel tipsModel = new DefaultTipModel();
         if (tips.getTips().isEmpty())
-            tipsModel.add(new DefaultTip("tip", "Treść"));
+            tipsModel.add(new DefaultTip("Default", "Niestety nie mamy dla Ciebie żadnych wskazówek."));
         else {
             for (SingleTip singleTip : tips.getTips()) {
                 tip = singleTip;
                 tipsModel.add(new DefaultTip(tip.getTitle(), tip.getContent()));
             }
         }
-
         JTipOfTheDay tipsWindow = new JTipOfTheDay(tipsModel);
-        tipsWindow.showDialog(null);
+        Dimension tipsWindowDimension = new Dimension();
+        tipsWindowDimension.setSize(300,250);
+        tipsWindow.setPreferredSize(tipsWindowDimension);
 
+        tipsWindow.showDialog(null);
     }
+
+    //------------------------------------------------
+    //------------------------------------------------
+    //------------------------------------------------
+
+    /**
+     * Wyświetlanie w komunikacie informacji o autorze.
+     */
+
+    void showAuthorMessageDialog() {
+        JOptionPane.showMessageDialog(null, "Autor : Grzegorz  Ciosek", "O programie", JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    //------------------------------------------------
+    //------------------------------------------------
+    //------------------------------------------------
+
+    /**
+     * Konfiguracja tabeli jak i również jej zerowanie.
+     */
 
     void tableSetModel() {
         Object tableValue = new Object[][]{{0, 0, 0, 0, 0}, {0, 0, 0, 0, 0}, {0, 0, 0, 0, 0}, {0, 0, 0, 0, 0}, {0, 0, 0, 0, 0}};
         String[] tableText = new String[]{"1", "2", "3", "4", "5"};
+        logger.info("Wczytywanie tabeli.");
         table.setModel(new DefaultTableModel((Object[][]) tableValue, tableText));
     }
+
+    //------------------------------------------------
+    //------------------------------------------------
+    //------------------------------------------------
+
+    /**
+     * Wypełnianie tabeli losowymi wartościami z zakresu podanego argumentem bounds.
+     * @param bounds - zakres losowanych danych
+     */
 
     void tableSetRandomValues(int bounds) {
         Random generator = new Random();
@@ -554,60 +592,125 @@ public class ApplicationGui {
                 table.setValueAt(generator.nextInt(bounds), i, j);
             }
         }
+        logger.info("Losowanie wartości w tabeli.");
         reloadChart();
     }
 
+    //------------------------------------------------
+    //------------------------------------------------
+    //------------------------------------------------
 
-    void saveToFile() {
-        if (file.exists())
-            file.delete();
-
-        try {
-            file.createNewFile();
-            FileOutputStream fileOut = new FileOutputStream(file);
-            BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(fileOut));
-            bufferedWriter.write(table.getValueAt(slider_1.getValue() - 1, slider.getValue() - 1).toString());
-            bufferedWriter.close();
-            JOptionPane.showMessageDialog(null,"Zapisano wartość "+table.getValueAt(slider_1.getValue() - 1, slider.getValue() - 1).toString() +" do pliku.");
-        } catch (IOException e) {
-            JOptionPane.showMessageDialog(null,"Nie udało się zapisać wartości do pliku.");
-
-        }
-    }
-
-
-    void loadFromFile() {
-        if (file.exists()) {
-            try {
-                FileInputStream fileIn = new FileInputStream(file);
-                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(fileIn));
-                table.setValueAt(bufferedReader.readLine(), slider_1.getValue() - 1, slider.getValue() - 1);
-                bufferedReader.close();
-                reloadChart();
-                JOptionPane.showMessageDialog(null,"Wczytano wartość "+table.getValueAt(slider_1.getValue() - 1, slider.getValue() - 1).toString() +" z pliku.");
-            } catch (Exception e) {
-                JOptionPane.showMessageDialog(null,"Nie udało się wczytać wartości z pliku.");
-            }
-
-        }
-    }
-
-    private void dateChanged(DateEvent dateEvent) {
-        textAreaValue.setText(new SimpleDateFormat("yyyy-MM-dd").format(calendarCombo.getDate()));
-    }
-
+    /**
+     * Metoda odpowiedzialna za wyświetlanie pomocy [javadoc]
+     */
 
     void showHelp() {
         if (Desktop.isDesktopSupported()) {
             try {
                 File helpFile = new File(this.getClass().getProtectionDomain().getCodeSource().getLocation().toURI());
                 String path = helpFile.getParentFile().getAbsolutePath();
-                Desktop.getDesktop().open(new File(path + "/Docs/javadoc/index.html"));
+                logger.info(path);
+                Desktop.getDesktop().open(new File(path + "/Docs/index.html"));
                 logger.info("Odczytano plik pomocy.");
             } catch (URISyntaxException | IOException | IllegalArgumentException e) {
                 JOptionPane.showMessageDialog(null, "Nie udało się wczytać pliku pomocy.");
-                logger.info("Nie udało się wczytać pliku pomocy.");
+                logger.error(e + " Nie udało się wczytać pliku pomocy.");
             }
+        }
+    }
+
+
+    //*********************************************************************************
+    //*********************************************************************************
+    //*********                     dateChanged dla kalendarza.             ***********
+
+    /**
+     * Obsługa zdarzeń związanych z kalendarzem.
+     * @param dateEvent - zawiera dane odnośnie obiektu kalendarza.
+     */
+
+    private void dateChanged(DateEvent dateEvent) {
+        textAreaValue.setText(new SimpleDateFormat("yyyy-MM-dd").format(calendarCombo.getDate()));
+    }
+
+    //*********************************************************************************
+    //*********************************************************************************
+    //********* ACTION PERFORMED - > odpowiedzialne za działanie aplikacji. ***********
+
+    /**
+     * <p>Metoda odpowiedzialna za działanie aplikacji.</p>
+     * <p>Znajdują się w niej wszystkie akcje wywoływane ingerencją użytkownika.</p>
+     *
+     * @param e Zawiera informacje odnośnie obiektu, który wywołuje metodę.
+     */
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+
+        // ZEROWANIE TABELI
+
+        if(e.getSource() == menuZeroItem || e.getSource() == setZeroToAllTable ){
+                logger.info("Zerowanie tabeli.");
+                tableSetModel();
+                reloadChart();
+                textAreaValue.setText("");
+            }
+
+        // ZAPIS ELEMENTU DO PLIKU
+
+        else if(e.getSource() == menuSaveItem || e.getSource() == saveButton || e.getSource() == writeToFileButton){
+            FileOperations.saveToFile(table.getValueAt(slider_1.getValue() - 1, slider.getValue() - 1).toString(), logger);
+        }
+
+        //WCZYTANIE ELEMENTU Z PLIKU
+
+        else if(e.getSource() == menuLoadItem || e.getSource() == loadButton || e.getSource() == readFromFileButton){
+            table.setValueAt(FileOperations.loadFromFile(table.getValueAt(slider_1.getValue() - 1, slider.getValue() - 1).toString(), logger), slider_1.getValue() - 1, slider.getValue() - 1);
+            reloadChart();
+        }
+
+        // RANDOMOWE WARTOSCI DO TABELI
+
+        else if(e.getSource() == menuRandomItem || e.getSource() == setRandomValuesButton){
+            tableSetRandomValues(10);
+        }
+
+        // ZAMYKANIE APLIKACJI
+
+        else if(e.getSource() == menuCloseItem){
+            System.exit(1);
+        }
+
+        // WYSWIETLANIE PLIKU HELP [JavaDoc]
+
+        else if(e.getSource() == helpButton || e.getSource() == menuHelpItem){
+            showHelp();
+        }
+
+        // INFORMACJE O AUTORZE
+
+        else if(e.getSource() == menuAuthorItem){
+            showAuthorMessageDialog();
+        }
+
+        // WSTAWIANIE WARTOSCI DO TABELI
+
+        else if(e.getSource() == setToTable){
+            try{
+                double value = Double.parseDouble(textFieldValue.getText());
+                table.setValueAt(value, slider_1.getValue() - 1, slider.getValue() - 1);
+                reloadChart();
+                textAreaValue.setText("");
+            } catch(NumberFormatException err){
+                logger.error(err + " Wartość nieprawidłowa !!!!");
+                JOptionPane.showMessageDialog(null,"Wartość wstawiana do tabeli musi być liczbą w formacie [**.**]");
+            }
+        }
+
+        // WYŚWIETLANIE TIPÓW
+
+        else if(e.getSource() == menuTipsItem){
+            showTips(tips);
         }
     }
 }

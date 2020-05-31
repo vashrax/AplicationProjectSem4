@@ -1,33 +1,60 @@
 package application;
 
-import java.io.Serializable;
 import java.util.LinkedHashSet;
 
-public class Tips implements Serializable{
+/**
+ * Obiekt tej klasy zaweira listę tipów wyświetlanych w aplikacji okienkowej.
+ *
+ *  @author Grzegorz Ciosek (VashRaX)
+ * 	@version 1.1.0
+ *
+ */
 
-	private static final long serialVersionUID = 6139406885688913810L;
+public class Tips{
+
+
 	private LinkedHashSet<SingleTip> tips = new LinkedHashSet<>();
 	
 	Tips(){
-		
-	}
-	
-	public void saveTips() {
-		FileOperations.SaveTipsToFile(this);
-	}
-	
-	public void loadTips() {
-		setTips(FileOperations.LoadTipsFromFile().getTips());
+		tips.add(new SingleTip("1","PIERWSZE I NAJWAŻNIEJSZE :\n" +
+				"Format wczytywanej z klawiatury liczby:\n" +
+				"      **.**      \n" +
+				"Liczba zmiennoprzecinkowa z kropką.\n" +
+				"Przecinek spowoduje wywołanie błędu."));
+
+		tips.add(new SingleTip("2","Skróty klawiszowe :\n" +
+				"F1 - Pomoc\n" +
+				"F2 - Zapis do pliku\n" +
+				"F3 - Wczytywanie z pliku\n" +
+				"F4 - Zamknięcie apliacji\n" +
+				"F5 - Zerowanie tabeli\n" +
+				"F6 - Wartości losowe\n" +
+				"Home - Informacje o autorze"));
+		tips.add(new SingleTip("3","Do pliku zapisywana jest pojedyńcza wartość, nie cała tabela!!!"));
+		tips.add(new SingleTip("4", "Okienko pomocy wyświetla dokument wygenerowany automatycznie przez JavaDoc."));
 	}
 
+	/**
+	 * Getter. Zwraca listę tipów [Obiekt]
+	 * @return tips
+	 */
 	public LinkedHashSet<SingleTip> getTips() {
 		return tips;
 	}
 
+	/**
+	 * Setter. Ustawia wartość dla obiektu tips
+	 * @param tips - wartość, która zostanie przypisana danemu obiektowi.
+	 */
 	public void setTips(LinkedHashSet<SingleTip> tips) {
 		this.tips = tips;
 	}
-	
+
+	/**
+	 * Dodawanie pojedyńczego tipa do listy.
+	 * @param title - Tytuł
+	 * @param content - Tekst wyświetlany dla użytkownika w okienku TipOfTheDay.
+	 */
 	public void addTip(String title, String content) {
 		tips.add(new SingleTip(title, content));
 	}

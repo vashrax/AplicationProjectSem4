@@ -20,6 +20,7 @@
         <property name = "PK2.conf" value = "config" />
         <property name = "PK2.dist" value= "dist" />
         <property name = "PK2.doc" value = "${PK2.dist}/Docs" />
+        <property name = "PK2.docs" value ="Docs"/>
         <property name = "PK2.lib" value = "libs" />
         <property name = "PK2.icons" value = "icons" />
         <property name = "p.app" value = "${PK2.src}/application" />
@@ -28,14 +29,14 @@
     <target name = "Clean" depends = "Init" >
         <echo message = "Usuwanie zbednych czesci projektu..."/>
         <delete dir = "${PK2.bin}" />
-        <delete dir = "${PK2.doc}/javadoc" />
+        <delete dir = "${PK2.doc}/" />
     </target>
 
 
     <target name = "Prepare" depends = "Clean" >
         <echo message = "Przygotowanie struktury projektu..."/>
         <mkdir dir = "${PK2.bin}"/>
-        <mkdir dir = "${PK2.doc}/javadoc" />
+        <mkdir dir = "${PK2.doc}/" />
     </target>
 
 
@@ -59,7 +60,7 @@
     <target name = "Javadoc" depends = "Compile-app">
         <echo message = "Utworzenie dokumentacji javadoc..." />
         <javadoc sourcefiles = "${p.app}/*.java"
-                 destdir = "${PK2.doc}/javadoc"
+                 destdir = "${PK2.doc}"
                  encoding="UTF-8"
                  charset="UTF-8">
                 <classpath refid= "compile.classpath"/>
@@ -69,7 +70,7 @@
     <target name ="Create-EXJAR" depends="Javadoc">
         <echo message = "Tworzenie executable jar..." />
         <manifest file = "MANIFEST.MF">
-            <attribute name = "Main-Class" value = "application.ApplicationGui"/>
+            <attribute name = "Main-Class" value = "application.Application"/>
         </manifest>
         <jar destfile="dist/Project.jar"
              basedir="."
@@ -87,9 +88,19 @@
         </copy>
     </target>
 
-    <target name = "Run-Project" depends = "Create-EXJAR">
+    <target name = "JavadocOpen" depends = "Create-EXJAR">
+        <echo message = "Utworzenie dokumentacji javadoc..." />
+        <javadoc sourcefiles = "${p.app}/*.java"
+                 destdir = "${PK2.docs}/"
+                 encoding="UTF-8"
+                 charset="UTF-8">
+            <classpath refid= "compile.classpath"/>
+        </javadoc>
+    </target>
+
+    <target name = "Run-Project" depends = "JavadocOpen">
         <echo message = "Start aplikacji..." />
-        <java classname="application.ApplicationGui" fork="true">
+        <java classname="application.Application" fork="true">
             <classpath refid= "compile.classpath"/>
             <classpath id = "1">
                 <pathelement location = "." />

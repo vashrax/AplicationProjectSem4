@@ -2,27 +2,59 @@ package application;
 
 import java.io.Serializable;
 
-public class SingleTip implements Serializable{
-	
-	private static final long serialVersionUID = 8669996187778280691L;
+/**
+ * Klasa reprezentująca pojedyńczy "tip".
+ *
+ *  @author Grzegorz Ciosek (VashRaX)
+ * 	@version 1.0.0
+ *
+ */
+
+public class SingleTip{
+
 	private String title;
-	private String content;	
-	
+	private String content;
+
+
+	/**
+	 * Konstruktor tworzący obiekt typu SingleTip.
+	 * @param title - Tytuł
+	 * @param content - Tekst wyświetlany dla użytkownika w okienku TipOfTheDay.
+	 */
 	public SingleTip(String title, String content) {
 		super();
 		this.title = title;
 		this.content = content;
 	}
-	
+
+	/**
+	 * Getter zwracający tytuł.
+	 * @return tytuł
+	 */
 	public String getTitle() {
 		return title;
 	}
+
+	/**
+	 * Setter ustalający tytuł.
+	 * @param title - wartość przypisywana przez setter.
+	 */
 	public void setTitle(String title) {
 		this.title = title;
 	}
+
+	/**
+	 * Getter zwracający ciało SingleTip'a
+	 * @return Tekst wyświetlany użytkownikowi.
+	 */
 	public String getContent() {
 		return content;
 	}
+
+	/**
+	 * Setter ustalający ciało SingleTip'a.
+	 * @param content - Wartość przypisywana dla ciała przez setter.
+	 */
 	public void setContent(String content) {
 		this.content = content;
 	}
