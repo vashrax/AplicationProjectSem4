@@ -609,7 +609,6 @@ public class ApplicationGui implements ActionListener{
             try {
                 File helpFile = new File(this.getClass().getProtectionDomain().getCodeSource().getLocation().toURI());
                 String path = helpFile.getParentFile().getAbsolutePath();
-                logger.info(path);
                 Desktop.getDesktop().open(new File(path + "/Docs/index.html"));
                 logger.info("Odczytano plik pomocy.");
             } catch (URISyntaxException | IOException | IllegalArgumentException e) {
@@ -678,7 +677,11 @@ public class ApplicationGui implements ActionListener{
         // ZAMYKANIE APLIKACJI
 
         else if(e.getSource() == menuCloseItem){
-            System.exit(1);
+          int result = JOptionPane.showConfirmDialog(null, "Czy napewno chcesz zamknąć aplikację", "Wyjście", JOptionPane.YES_NO_OPTION);
+            if(result == JOptionPane.YES_OPTION){
+                logger.info("Zamykanie aplikacji.");
+                System.exit(0);
+            }
         }
 
         // WYSWIETLANIE PLIKU HELP [JavaDoc]
